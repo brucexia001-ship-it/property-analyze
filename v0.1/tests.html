@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>计算测试 · Property Analyzer V0.1</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2312605a'/%3E%3Cpath d='m8 16 5 5 11-11' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>
+    :root { color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #172b3a; background: #f3f6fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 20px; }
+    main { max-width: 980px; margin: auto; }
+    h1 { font-size: 28px; margin: 0 0 12px; }
+    p { line-height: 1.7; color: #566577; }
+    a { color: #12605a; text-underline-offset: 3px; }
+    button { background: #12605a; color: white; border: 0; border-radius: 8px; padding: 12px 20px; font: inherit; font-weight: 600; cursor: pointer; }
+    button:hover { background: #0d4b47; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #d39f46; outline-offset: 4px; }
+    .actions { display: flex; gap: 24px; align-items: center; margin: 24px 0; }
+    #summary { padding: 18px 20px; border-radius: 8px; background: #e8f4ee; border: 1px solid #bfdecd; font-weight: 600; }
+    #summary.fail { background: #fff0ed; border-color: #e8bdb4; color: #8c3027; }
+    ol { list-style: none; padding: 0; border: 1px solid #dbe3ec; border-radius: 8px; background: white; overflow: hidden; }
+    li { padding: 14px 20px; border-bottom: 1px solid #e9edf2; line-height: 1.6; overflow-wrap: anywhere; }
+    li:last-child { border-bottom: 0; }
+    .status { color: #12605a; font-weight: 700; margin-right: 12px; }
+    .failed .status { color: #ad3c31; }
+    .error { color: #ad3c31; font-size: 14px; margin: 4px 0 0 48px; }
+    @media (max-width: 600px) { body { padding: 24px 14px; } h1 { font-size: 23px; } li { padding: 12px 14px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>计算测试</h1>
+    <p>Property Analyzer V0.1 · 检查租金收益、费用、税额、压力测试与汇率换算。所有金额和税率均为虚构测试数据。</p>
+    <p>直接双击本文件即可离线运行。通过表示计算结果与独立的预期数值一致；若出现失败，请保留错误信息以便排查。</p>
+    <div class="actions">
+      <button type="button" id="run-tests">重新运行测试</button>
+      <a href="index.html">返回房产分析器</a>
+    </div>
+    <div id="summary" role="status" aria-live="polite">正在运行测试…</div>
+    <ol id="results" aria-label="测试结果"></ol>
+    <noscript><p>请启用浏览器 JavaScript 后重新打开本文件。</p></noscript>
+  </main>
+  <script src="calculations.js"></script>
+  <script src="tests.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      var summary = document.getElementById("summary");
+      var results = document.getElementById("results");
+      function renderTests() {
+        results.textContent = "";
+        if (!window.PropertyTests) {
+          summary.textContent = "无法加载测试文件。请确认 tests.js 和 calculations.js 与本文件位于同一文件夹。";
+          summary.className = "fail";
+          return;
+        }
+        var report = window.PropertyTests.runTests();
+        summary.textContent = "共 " + report.results.length + " 项测试：" + report.passed + " 项通过，" + report.failed + " 项失败。";
+        summary.className = report.failed ? "fail" : "";
+        report.results.forEach(function (result) {
+          var row = document.createElement("li");
+          if (!result.passed) row.className = "failed";
+          var status = document.createElement("span");
+          status.className = "status";
+          status.textContent = result.passed ? "通过" : "失败";
+          row.appendChild(status);
+          row.appendChild(document.createTextNode(result.name));
+          if (result.error) {
+            var error = document.createElement("p");
+            error.className = "error";
+            error.textContent = result.error;
+            row.appendChild(error);
+          }
+          results.appendChild(row);
+        });
+      }
+      document.getElementById("run-tests").addEventListener("click", renderTests);
+      renderTests();
+    }());
+  </script>
+</body>
+</html>
